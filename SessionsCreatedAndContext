@@ -1,0 +1,43 @@
+// First, read in the HAR file contents as a string
+const harFileContents = /* Your HAR file contents as a string */
+
+// Parse the HAR file as a JSON object
+const har = JSON.parse(harFileContents);
+
+// Define a function to check if a request pertains to session establishment
+function isSessionEstablishmentRequest(request) {
+  // Check if the request method is POST and if the request URL contains the word "login"
+  return request.method === 'POST' && request.url.includes('login');
+}
+
+// Define an object to keep track of which domains/apps have session establishment requests
+const sessionEstablishmentDomains = {};
+
+// Loop through each entry in the HAR file
+har.log.entries.forEach((entry) => {
+  // Check if the request pertains to session establishment
+  if (isSessionEstablishmentRequest(entry.request)) {
+    // Extract the domain/app from the request URL
+    const url = new URL(entry.request.url);
+    const domain = url.hostname;
+    const app = url.pathname.split('/')[1];
+    
+    // Add the domain/app to our tracking object
+    if (!sessionEstablishmentDomains[domain]) {
+      sessionEstablishmentDomains[domain] = {};
+    }
+    if (!sessionEstablishmentDomains[domain][app]) {
+      sessionEstablishmentDomains[domain][app] = true;
+    }
+  }
+});
+
+// Define the path where the results should be returned
+const resultsPath = '/Users/norbertpall/PY scripts';
+
+// Write the results to a file at the specified path
+const fs = require('fs');
+fs.writeFileSync(resultsPath + '/session-establishment-results.json', JSON.stringify(sessionEstablishmentDomains));
+
+// Print out a message indicating where the results were saved
+console.log(`Results saved to ${resultsPath}/session-establishment-results.json`);
