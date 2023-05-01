@@ -1,0 +1,43 @@
+const fs = require('fs');
+
+function generateReport(filename) {
+    // Read the file contents
+    const contents = fs.readFileSync(filename, 'utf-8');
+
+    // Split the contents into rows and count the number of occurrences of each unique entry in column T
+    const rows = contents.split('\n');
+    const counts = {};
+    let total = 0;
+    for (let i = 0; i < rows.length; i++) {
+        const tokens = rows[i].split(',');
+        if (tokens.length > 19) {  // Make sure the row has at least 20 columns (including column T)
+            const entry = tokens[19];
+            if (entry in counts) {
+                counts[entry]++;
+            } else {
+                counts[entry] = 1;
+            }
+            total++;
+        }
+    }
+
+    // Sort the counts in ascending order by value
+    const sortedCounts = Object.entries(counts)
+        .sort((a, b) => a[1] - b[1])
+        .reduce((obj, [key, value]) => {
+            obj[key] = value;
+            return obj;
+        }, {});
+
+    // Write the counts to a file
+    const outfile = '/Users/norbertpall/PY scripts/ReportIP';
+    let output = '';
+    for (const entry in sortedCounts) {
+        const percentage = (sortedCounts[entry] / total) * 100;
+        output += entry + ": " + sortedCounts[entry] + " (" + percentage.toFixed(2) + "%)\n";
+    }
+    fs.writeFileSync(outfile, output);
+}
+
+const filename = '/Users/norbertpall/PY scripts/InputFile.csv';
+generateReport(filename);
